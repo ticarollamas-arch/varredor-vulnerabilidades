@@ -1,63 +1,58 @@
-# Varredor Inteligente de Vulnerabilidades
+<p align="center"><img src="assets/banner.svg" alt="Varredor de Vulnerabilidades — triagem estática de fonte para sink" width="100%"></p>
 
-Triagem estática de código que aponta onde entrada não confiável (`req`, `query`, `argv`) chega a uma função perigosa. Cobre path traversal, injeção de comando, segredo em log e credencial hardcoded — em JS/TS, Python, Go e Java.
+# Varredor Inteligente de Vulnerabilidades — triagem estática multilinguagem
 
-![Python](https://img.shields.io/badge/python-3.12-blue)
-![Docker](https://img.shields.io/badge/docker-pronto-blue)
-![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-green)
+Scanner de **triagem estática** em **Python** que aponta onde **entrada não confiável** (`req`, `query`, `argv`) chega a uma **função perigosa**. Cobre path traversal, injeção de comando, segredo em log e credencial hardcoded em **JavaScript/TypeScript, Python, Go e Java**. Pode ser usado direto ou em **Docker**.
 
-> Ferramenta de **triagem**: ela sublinha pontos suspeitos para você revisar, não prova exploração. Confirme cada achado manualmente antes de qualquer report.
+> É uma ferramenta de **triagem**: destaca pontos suspeitos para revisão e não prova exploração. Confirme cada achado manualmente antes de qualquer report.
 
-## Uso rápido com Docker
+## Recursos
 
-```bash
-git clone https://github.com/ticarollamas-arch/varredor-vulnerabilidades
-cd varredor-vulnerabilidades
-docker build -t varredor .
-```
-
-O `docker build` roda o autoteste embutido — se ele falhar, a imagem nem é criada.
-
-Para analisar **qualquer projeto**, monte a pasta dele em `/code`:
-
-```bash
-docker run --rm -v /caminho/do/projeto:/code varredor
-```
-
-No Termux/Android, a pasta atual:
-
-```bash
-docker run --rm -v "$PWD":/code varredor
-```
-
-## Sem Docker (Python direto)
-
-```bash
-python3 scanner.py /caminho/do/projeto
-python3 scanner.py --test      # autoteste
-```
-
-## O que detecta
-
-| CWE | Risco | Como casa |
+| CWE | Risco | Como detecta |
 |---|---|---|
-| CWE-22 | Path Traversal | entrada até `readFile/sendFile/open` |
-| CWE-78 | OS Command Injection | entrada até `exec/spawn/system/subprocess` |
-| CWE-522 | Segredo exposto em log | `secret/token/senha` dentro de `console.log/print` |
-| CWE-798 | Credencial hardcoded | `senha/api_key/token = "…"` (PT e EN) |
+| CWE-22 | Path traversal | Entrada chegando a `readFile`, `sendFile` ou `open` |
+| CWE-78 | Injeção de comando | Entrada chegando a `exec`, `spawn`, `system` ou `subprocess` |
+| CWE-522 | Segredo exposto em log | `secret`, `token` ou `senha` dentro de `console.log`/`print` |
+| CWE-798 | Credencial hardcoded | `senha`, `api_key` ou `token = "…"` (português e inglês) |
 
-## Filtro de falso positivo
+- **Filtro de falsos positivos**: ignora comentários, textos de ajuda (`--help`, `usage`, `example:`) e caminhos estáticos seguros (`path.join(__dirname, …)`, `process.cwd()`).
+- **Autoteste** embutido, executado também durante o `docker build`.
+- Sem dependências externas.
 
-Antes de reportar um achado, o scanner descarta:
-- comentários e linhas de ajuda (`--help`, `usage`, `example:`);
-- caminhos estáticos seguros (`path.join(__dirname, …)`, `process.cwd()`).
+## Instalação
+
+### Docker
+
+```bash
+git clone https://github.com/ticarollamas-arch/varredor-vulnerabilidades.git
+cd varredor-vulnerabilidades
+docker build -t varredor .     # o build falha se o autoteste falhar
+```
+
+### Python
+
+Requisitos: **Python 3.10+** (a imagem usa 3.12).
+
+## Como usar
+
+```bash
+docker run --rm -v /caminho/do/projeto:/code varredor   # analisa um projeto montado em /code
+docker run --rm -v "$PWD":/code varredor                # pasta atual (inclusive no Termux)
+
+python3 scanner.py /caminho/do/projeto                  # sem Docker
+python3 scanner.py --test                               # autoteste
+```
 
 ## Limitações
 
-- Casamento por linha: fonte e sink precisam estar na mesma linha (não segue variável entre linhas).
-- Regex, não AST: código muito ofuscado ou dinâmico escapa.
-- É triagem — reduz o que chega à revisão manual, não substitui.
+- O casamento é por linha: fonte e *sink* precisam estar na mesma linha (não segue variáveis entre linhas).
+- Usa expressões regulares, não AST: código ofuscado ou muito dinâmico pode escapar.
+- Reduz o que chega à revisão manual, mas não a substitui.
+
+## Tecnologias
+
+Python 3 · expressões regulares · Docker · CWE (MITRE)
 
 ## Licença
 
-MIT
+Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
